@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>OurApp</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <script defer src="https://use.fontawesome.com/releases/v5.5.0/js/all.js" integrity="sha384-GqVMZRt5Gn7tB9D9q7ONtcp4gtHIUEW/yG7h98J7IpE3kpi+srfFyyB/04OV6pG0" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,700,700i" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.13.0/build/ol.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.13.0/css/ol.css">
+  <link rel="stylesheet" href="main.css">
+  <style>
+    .map {
+        width: 40%;
+        height:200px;
+        display: block;
+        margin: 0 auto;
+        margin-bottom: 4rem;
+      }
+  </style>
+</head>
+<body>
+  <header class="header-bar mb-3">
+    <div class="container d-flex flex-column flex-md-row align-items-center p-3">
+      <h4 class="my-0 mr-md-auto font-weight-normal"><a href="/" class="text-white">OurApp</a></h4>
+      <div class="flex-row my-3 my-md-0">
+        <a href="#" class="text-white mr-2 header-search-icon" title="Search" data-toggle="tooltip" data-placement="bottom"><i class="fas fa-search"></i></a>
+        <span class="text-white mr-2 header-chat-icon" title="Chat" data-toggle="tooltip" data-placement="bottom"><i class="fas fa-comment"></i></span>
+        <a href="#" class="mr-2"><img title="My Profile" data-toggle="tooltip" data-placement="bottom" style="width: 32px; height: 32px; border-radius: 16px;" src="https://gravatar.com/avatar/f64fc44c03a8a7eb1d52502950879659?s=128"></a>
+        <a class="btn btn-sm btn-success mr-2" href="#">Create Post</a>
+        <form action="/logout" method="POST" class="d-inline">
+          <button class="btn btn-sm btn-secondary">Sign Out</button>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>" >
+        </form>
+      </div>     
+    </div>
+  </header>
+  <!-- header ends here -->
+  
+  <form action="/addreview/?_csrf=<%=csrfToken()%>" method="POST" id="registration-form" enctype="multipart/form-data" >
+    <% errors.forEach(function(message) { %>
+      <div class="alert alert-danger small"><%= message %></div>
+    <% }) %>
+
+      <div class="form-group">
+        <label for="review-title" class="text-muted mb-1"><small>Title</small></label>
+        <input name="title" id="review-title" class="form-control" type="text" placeholder="add a title" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="restaurant-name" class="text-muted mb-1"><small>Restaurant</small></label>
+        <input name="restaurant" id="restaurant-name" class="form-control" type="text" placeholder="restaurant name" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="restaurant-review" class="text-muted mb-1"><small>Review</small></label>
+        <textarea name="review" id="restaurant-review" class="form-control" rows=10></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="restaurant-rating" class="text-muted mb-1"><small>Rating (out of five)</small></label>
+        <input name="rating" id="restaurant-rating" class="form-control" type="number" max=5 min=0 autocomplete="off" value="0">
+      </div>
+
+      <input name="lat" id="id-lat" type="hidden" value="" >
+      <input name="lng" id="id-lng" type="hidden" value="">
+      <div id="map" class="map">
+        <label class="text-muted mb-1"><small>Please select the restaurant location:</small></label>
+        <br/>
+        <span id="lat-display" class="text-muted mb-1"><small>Latitude: </small></span>
+        <span id="lng-display" class="text-muted mb-1"><small>Longitude: </small></span>
+      </div>
+      <script>
+        let latField = document.querySelector('#id-lat');
+        let lngField = document.querySelector('#id-lng');
+        let latDisplay = document.querySelector('#lat-display');
+        let lngDisplay = document.querySelector('#lng-display');
+
+        let mainmap = new ol.Map({
+          target: 'map',
+          layers: [
+            new ol.layer.Tile({
+              source: new ol.source.OSM()
+            })
+          ],
+          view: new ol.View({
+            center: ol.proj.fromLonLat([-1.898575,52.489471]),
+            //center: [0, 0],
+            zoom: 12
+          }),
+          controls: ol.control.defaults({
+            attributionOptions: {
+              className: 'my-ol-attribution'
+            }
+          })
+        });
+
+        const iconStyle = new ol.style.Style({
+          image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+            anchor: [0.5, 46],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'pixels',
+            opacity: 0.75,
+            src: '../mappin.png'
+          }))
+        });
+
+        let markerLayer = null;
+
+        function addMarker(lon,lat,item) {
+          latField.value = lat;
+          lngField.value = lon;
+          latDisplay.innerHTML = `<small>Latitude: ${lat}</small>`;
+          lngDisplay.innerHTML = `<small>Latitude: ${lon}</small>`;            
+
+          if(markerLayer) {
+            mainmap.removeLayer(markerLayer);
+          }
+          markerLayer = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                features: [
+                    new ol.Feature({
+                      //geometry: new ol.geom.Point(ol.proj.fromLonLat([-1.898575,52.489471])),
+                      geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                      //item: item
+                    })
+                ]
+            }),
+            style: iconStyle,
+            type: 'marker'
+          });
+          //console.log(markerLayer.getSource());
+          // markerLayer.source = new ol.source.Vector({
+          //       features: [
+          //           new ol.Feature({
+          //             //geometry: new ol.geom.Point(ol.proj.fromLonLat([-1.898575,52.489471])),
+          //             geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+          //             //item: item
+          //           })
+          //       ],
+          //     }),
+          
+          mainmap.addLayer(markerLayer)
+        }
+
+        mainmap.on('singleclick', function (event) {
+          //let coordinate = event.coordinate;
+          let lonLat = ol.proj.transform(event.coordinate, 'EPSG:3857', 'EPSG:4326');
+          //console.log('clicked at', coordinate, event, lonLat);
+          //addMarker(data[i].location.coordinates[0].$numberDecimal,data[i].location.coordinates[1].$numberDecimal,null);
+          addMarker(lonLat[0],lonLat[1],null);
+        });
+      </script>
+
+      <div class="form-group">
+         <label for="files" class="text-muted mb-1"><small>Add images of food / restaurant</small></label><br/>
+        <input type="file" id="files" name="files" multiple="multiple">
+      </div>
+
+
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>" >
+
+      <button type="submit" class="py-3 mt-4 btn btn-lg btn-success btn-block">Add Review</button>
+    </form>
+  
+  <!-- footer begins -->
+  <footer class="border-top text-center small text-muted py-3">
+    <p class="m-0">Copyright &copy; 2019 <a href="/" class="text-muted">OurApp</a>. All rights reserved.</p>
+  </footer>
+  
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  <script>$('[data-toggle="tooltip"]').tooltip()</script>
+</body>
+</html>
