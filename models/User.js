@@ -23,6 +23,7 @@ User.prototype.cleanUp = function() {
         username: this.data.username.trim().toLowerCase(),
         email: this.data.email.trim().toLowerCase(),
         password: this.data.password,
+        isAdmin: false,
     }
 }
 
@@ -71,7 +72,7 @@ User.prototype.login = function(callback) {
         this.cleanUp();
         usersCollection.findOne({username: this.data.username}).then((attemptedUser) => {
             if(attemptedUser && bcrypt.compareSync(this.data.password,attemptedUser.password)) {
-                resolve('Congrats');
+                resolve({isAdmin: attemptedUser.isAdmin});
             } else {
                 reject('Invalid username / password');
             }

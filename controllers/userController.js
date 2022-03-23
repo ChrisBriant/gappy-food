@@ -1,13 +1,32 @@
 const { request } = require('http');
 const User = require('../models/User');
 
+
+exports.adminRequired = function(req,res,next) {
+    if(req.session.user) {
+        if(req.session.user.isAdmin) {
+            next();
+        } else {
+            req.flash('errors','You must be an admin to perform that action');
+            req.session.save(function () {
+                res.redirect('/');
+            });
+        }
+        
+    } else {
+        req.flash('errors','You must be logged in to perform that action');
+        req.session.save(function () {
+            res.redirect('/');
+        });
+    }
+}
+
 exports.login = function(req,res) {
     let user = new User(req.body);
     user.login().then(
         async function(result) {
-            console.log('logged in', result);
             req.session.user = {
-                favcolor: 'blue', username: user.data.username,
+                isAdmin: result.isAdmin, username: user.data.username,
             };
             await req.session.save();
             res.redirect('/admin')
@@ -29,7 +48,7 @@ exports.logout = function(req, res) {
 exports.register = async function(req, res) {
     let user = new User(req.body);
     user.register().then(async () => {
-        req.session.user = {username: user.data.username};
+        req.session.user = {isAdmin: user.data.isAdmin, username: user.data.username};
         await req.session.save();
         res.redirect('/admin');
     }).catch(async (regErrors) => {

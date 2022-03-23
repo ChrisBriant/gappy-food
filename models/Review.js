@@ -12,7 +12,6 @@ let Review = function(data,files) {
 }
 
 Review.prototype.cleanUp = function() {
-    console.log('data',this.data);
     if(typeof(this.data.title) != 'string' ) {
         this.data.title = '';
     }
@@ -75,17 +74,14 @@ Review.prototype.addReview = async function() {
     await this.validate();
 
     return new Promise(async (resolve, reject) => {
-        console.log(this.errors);
         if(this.errors.length <= 0) {
             //send review
             let id = await reviewsCollection.insertOne(this.data);
             this.files.forEach(async (fileItem) => {
                 await picturesCollection.insertOne({...fileItem,review_id:id.insertedId});
             });
-            console.log('Inserted',id.insertedId);
             resolve();
         } else {
-            console.log(this.files);
             //Delete uploaded files
             this.files.forEach((fileItem) => {
                 fs.unlinkSync(fileItem.path);

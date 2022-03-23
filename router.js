@@ -11,6 +11,6 @@ router.post('/register',userController.register);
 router.post('/login', userController.login);
 router.post('/logout',userController.logout);
 //router.post('/addreview',reviewController.addReview);
-router.route("/addreview").post(upload.array('files', 8), reviewController.addReview);
+router.route("/addreview").post(upload.array('files', 8), userController.adminRequired, reviewController.addReview);
 
 module.exports = router;
