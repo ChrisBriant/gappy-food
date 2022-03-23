@@ -6,6 +6,7 @@ const multer = require("multer")
 const upload = multer({ dest: "public/media" })
 
 router.get('/', userController.home);
+router.get('/admin', userController.adminHome);
 router.post('/register',userController.register);
 router.post('/login', userController.login);
 router.post('/logout',userController.logout);

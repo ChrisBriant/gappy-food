@@ -39,14 +39,12 @@ app.use(function(err,req,res,next) {
         console.log(err);
         if(err.code == "EBADCSRFTOKEN") {
             req.flash('errors','Cross site request forgery detected.');
-            req.session.save(() => res.redirect('/'));
+            req.session.save(() => res.redirect('/admin'));
         } else {
             res.send('Not found');
         }
     }
 });
 
-let d = new Date();
-console.log(d.toISOString());
 
 module.exports = app;

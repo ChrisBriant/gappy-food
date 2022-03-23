@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="main.css">
   <style>
     .map {
-        width: 40%;
+        width: 100%;
         height:200px;
         display: block;
         margin: 0 auto;
@@ -91,7 +91,17 @@
                 attributionOptions: {
                   className: 'my-ol-attribution'
                 }
-              })
+              }),
+              // interactions: ol.interaction.defaults({dragPan: false, mouseWheelZoom: false}).extend([
+              //   new ol.interaction.DragPan({
+              //     condition: function (event) {
+              //       return this.getPointerCount() === 2 || ol.events.condition.platformModifierKeyOnly(event);
+              //     },
+              //   }),
+              //   new ol.interaction.MouseWheelZoom({
+              //     condition: ol.events.condition.platformModifierKeyOnly,
+              //   }),
+              // ]),
             });
 
             const iconStyle = new ol.style.Style({
@@ -111,6 +121,9 @@
               lngField.value = lon;
               latDisplay.innerHTML = `<small>Latitude: ${lat}</small>`;
               lngDisplay.innerHTML = `<small>Latitude: ${lon}</small>`;            
+              
+              //Set the center
+              mainmap.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
 
               if(markerLayer) {
                 mainmap.removeLayer(markerLayer);

@@ -13,6 +13,6 @@ exports.addReview = async function(req,res) {
             req.flash('errors',error);
         });
         await req.session.save();
-        res.redirect('/');
+        res.redirect('/admin');
     }
 }   
