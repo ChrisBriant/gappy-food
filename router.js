@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const userController = require('./controllers/userController');
 const reviewController = require('./controllers/reviewController');
+const frontEndController = require('./controllers/frontEndController');
 const multer = require("multer")
 const upload = multer({ dest: "public/media" })
 
-router.get('/', userController.home);
+router.get('/',frontEndController.home);
 router.get('/admin', userController.adminHome);
 router.post('/register',userController.register);
 router.post('/login', userController.login);

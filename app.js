@@ -2,6 +2,8 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
+const markdown = require('marked');
+const sanitizeHTML = require('sanitize-html');
 const csrf = require('csurf');
 const app = express();
 
@@ -28,6 +30,22 @@ app.set('view engine', 'ejs');
 
 app.use(csrf());
 app.use(function(req,res,next) {
+    //make our markdown function available from ejs templates
+    res.locals.filterUserHTML = function(content) {
+        return sanitizeHTML(markdown.parse(content),{
+            allowedTags: ['p','br','ul','ol','li','strong','bold','italic','h1','h2','h3','h4'],
+            allowedAttributes: {},
+        });
+    }
+    //Extract the first paragraph
+    res.locals.extractFirstParagraph = function(content) {
+        let htmlContent = sanitizeHTML(markdown.parse(content),{
+            allowedTags: ['p','br','ul','ol','li','strong','bold','italic','h1','h2','h3','h4'],
+            allowedAttributes: {},
+        });
+        return htmlContent.match(/<p>(.*?)<\/p>/)[1];
+    }
+    //Make use of csrf token
     res.locals.csrfToken = req.csrfToken;
     next();
 });

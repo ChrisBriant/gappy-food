@@ -62,12 +62,11 @@ exports.register = async function(req, res) {
 }
 
 
-exports.home = function(req, res) {
-    res.send('Home page goes here');
-}
+// exports.home = function(req, res) {
+//     res.send('Home page goes here');
+// }
 
 exports.adminHome = function(req, res) {
-    console.log('home');
     if(req.session.user) {
         res.render('home-dashboard',{username: req.session.user.username, errors:req.flash('errors')});
     } else {

@@ -91,40 +91,69 @@ Review.prototype.addReview = async function() {
     });
 }
 
-// User.prototype.login = function(callback) {
-//     return new Promise((resolve, reject) => {
-//         this.cleanUp();
-//         usersCollection.findOne({username: this.data.username}).then((attemptedUser) => {
-//             if(attemptedUser && bcrypt.compareSync(this.data.password,attemptedUser.password)) {
-//                 resolve('Congrats');
-//             } else {
-//                 reject('Invalid username / password');
-//             }
-//         }).catch(function() {
-//             reject('Please try again later.');
-//         });
-//     });
-// }
+Review.getLatest = async function() {
+    let aggOperations = [
+        {$lookup: {from: 'pictures', localField: '_id', foreignField: 'review_id', as: 'pictures' }},
+        {$sort: { dateAdded: -1 } },
+        {$limit: 1},
+        {$project: {
+            title: 1,
+            restaurant: 1,
+            lat : 1,
+            lng: 1,
+            review : 1,
+            rating :1,
+            dateAdded : 1,
+            pictures : '$pictures',
+        }}
+    ];
 
-// User.prototype.register = function () {
-//     return new Promise( async (resolve,reject) => {
-//         //Step 1 validate user data
-//         this.cleanUp();
-//         await this.validate();
-//         //Step 2 Only if there are no there are no validation errors
-//         //then save the user data into the database
-//         if(!this.errors.length) {
-//             //hash user password
-//             let salt = bcrypt.genSaltSync(10);
-//             this.data.password = bcrypt.hashSync(this.data.password,salt);
-//             await usersCollection.insertOne(this.data);
-//             resolve();
-//         } else {
-//             reject(this.errors);
-//         }
-//     });
-// }
+    return new Promise((resolve, reject) => {
+        reviewsCollection.aggregate(aggOperations).toArray()
+        .then((data) => {
+            let picArray = data[0].pictures.map(pic => { return {'path' : pic.path.split('public/')[1]} });
+            resolve({...data[0],picArray} );
+        }).catch((err) => {
+            console.log(err);
+            reject();
+        });
+    });
+}
 
 
+Review.getReviews = async function() {
+    let aggOperations = [
+        {$lookup: {from: 'pictures', localField: '_id', foreignField: 'review_id', as: 'pictures' }},
+        {$sort: { dateAdded: -1 } },
+        {$project: {
+            title: 1,
+            restaurant: 1,
+            lat : 1,
+            lng: 1,
+            review : 1,
+            rating :1,
+            dateAdded : 1,
+            pictures : '$pictures',
+        }}
+    ];
+
+    return new Promise((resolve, reject) => {
+        reviewsCollection.aggregate(aggOperations).toArray()
+        .then((data) => {
+            let processedReviews = [];
+            //Remove top element and then get the picture paths
+            data.shift();
+            data.forEach((item) => {
+                let picArray = item.pictures.map(pic => { return {'path' : pic.path.split('public/')[1]} });
+                let newItem = {...item,picArray}
+                processedReviews.push(newItem);
+            });
+            resolve(processedReviews);
+        }).catch((err) => {
+            console.log(err);
+            reject();
+        });
+    });
+}
 
 module.exports = Review;
