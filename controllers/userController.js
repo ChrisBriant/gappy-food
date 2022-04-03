@@ -68,7 +68,7 @@ exports.register = async function(req, res) {
 
 exports.adminHome = function(req, res) {
     if(req.session.user) {
-        res.render('home-dashboard',{username: req.session.user.username, errors:req.flash('errors')});
+        res.render('home-dashboard',{username: req.session.user.username, errors:req.flash('errors'), success:req.flash('success')});
     } else {
         res.render('home-admin',{errors: req.flash('errors'), regErrors: req.flash('regErrors')});
     }

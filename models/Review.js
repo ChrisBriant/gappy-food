@@ -78,11 +78,16 @@ Review.prototype.addReview = async function() {
     return new Promise(async (resolve, reject) => {
         if(this.errors.length <= 0) {
             //send review
-            let id = await reviewsCollection.insertOne(this.data);
-            this.files.forEach(async (fileItem) => {
-                await picturesCollection.insertOne({...fileItem,review_id:id.insertedId});
-            });
-            resolve();
+            try {
+                let id = await reviewsCollection.insertOne(this.data);
+                this.files.forEach(async (fileItem) => {
+                    await picturesCollection.insertOne({...fileItem,review_id:id.insertedId});
+                });
+                resolve('Successfully added the review, you may add another one.');
+            } catch(err) {
+                this.errors.push(err);
+                reject(this.errors);
+            }
         } else {
             //Delete uploaded files
             this.files.forEach((fileItem) => {

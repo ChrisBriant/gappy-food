@@ -42,6 +42,10 @@
         <% errors.forEach(function(message) { %>
           <div class="alert alert-danger small"><%= message %></div>
         <% }) %>
+
+        <% success.forEach(function(message) { %>
+          <div class="alert alert-success small"><%= message %></div>
+        <% }) %>
           <div class="form-group">
             <label for="review-title" class="text-muted mb-1"><small>Title</small></label>
             <input name="title" id="review-title" class="form-control" type="text" placeholder="add a title" autocomplete="off">
