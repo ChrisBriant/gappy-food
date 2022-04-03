@@ -6,7 +6,6 @@ exports.addReview = async function(req,res) {
         await review.addReview();
         res.render('home-dashboard', {errors:[]});
     } catch (err) {
-        console.log('I have errors', err);
         err.forEach(function(error) {
             req.flash('errors',error);
         });

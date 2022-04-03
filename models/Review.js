@@ -3,7 +3,9 @@ const reviewsCollection = require('../db').db().collection('reviews');
 const picturesCollection = require('../db').db().collection('pictures');
 //const validator = require('validator');
 const fs = require('fs');
+const path = require('path');
 let sanitizeHTML = require('sanitize-html');
+const ObjectID = require('mongodb').ObjectId;
 
 let Review = function(data,files) {
    this.data = data;
@@ -111,10 +113,15 @@ Review.getLatest = async function() {
     return new Promise((resolve, reject) => {
         reviewsCollection.aggregate(aggOperations).toArray()
         .then((data) => {
-            let picArray = data[0].pictures.map(pic => { return {'path' : pic.path.split('public/')[1]} });
+            let picArray = data[0].pictures.map(pic => { 
+                let picFile = {'path' : pic.path.split('public/')[1]};
+                if(!fs.existsSync(`./public/${picFile.path}`)) {
+                    picFile = {'path' : 'img/dish.png'};
+                }
+                return picFile;
+            });
             resolve({...data[0],picArray} );
         }).catch((err) => {
-            console.log(err);
             reject();
         });
     });
@@ -144,16 +151,63 @@ Review.getReviews = async function() {
             //Remove top element and then get the picture paths
             data.shift();
             data.forEach((item) => {
-                let picArray = item.pictures.map(pic => { return {'path' : pic.path.split('public/')[1]} });
+                let picArray = item.pictures.map(pic => { 
+                    let picFile = {'path' : pic.path.split('public/')[1]};
+                    //Replace image with empty dish if it doesn't exist
+                    if(!fs.existsSync(`./public/${picFile.path}`)) {
+                        picFile = {'path' : 'img/dish.png'};
+                    }
+                    return picFile;
+                });
                 let newItem = {...item,picArray}
                 processedReviews.push(newItem);
             });
             resolve(processedReviews);
         }).catch((err) => {
-            console.log(err);
             reject();
         });
     });
+}
+
+Review.getSingleReview = function(id) {
+    let aggOperations = [
+        {$match: {_id:new ObjectID(id.trim())}},
+        {$lookup: {from: 'pictures', localField: '_id', foreignField: 'review_id', as: 'pictures' }},
+        {$sort: { dateAdded: -1 } },
+        {$project: {
+            title: 1,
+            restaurant: 1,
+            lat : 1,
+            lng: 1,
+            review : 1,
+            rating :1,
+            dateAdded : 1,
+            pictures : '$pictures',
+        }}
+    ];
+    
+    return new Promise(async (resolve,reject) => {
+        try {
+            await reviewsCollection.aggregate(aggOperations).toArray()
+            .then((data) => {
+                let picArray = data[0].pictures.map(pic => { 
+                    let picFile = {'path' : pic.path.split('public/')[1]};
+                    //Replace image with empty dish if it doesn't exist
+                    if(!fs.existsSync(`./public/${picFile.path}`)) {
+                        picFile = {'path' : 'img/dish.png'};
+                    }
+                    return picFile;
+                });
+                let newData = {...data[0],picArray}
+                resolve(newData);
+            });
+        } catch(err) {
+            reject(err);
+        }
+
+    } );
+    
+
 }
 
 module.exports = Review;

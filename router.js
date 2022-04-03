@@ -6,7 +6,10 @@ const frontEndController = require('./controllers/frontEndController');
 const multer = require("multer")
 const upload = multer({ dest: "public/media" })
 
+//Frontend routes
 router.get('/',frontEndController.home);
+router.get('/review/:id',frontEndController.review);
+//Backend routes
 router.get('/admin', userController.adminHome);
 router.post('/register',userController.register);
 router.post('/login', userController.login);

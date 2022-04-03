@@ -1,0 +1,37 @@
+
+<%- include('includes/head') %>
+
+<main>
+    <!-- <div class="container-fluid"> -->
+      <section>
+          <% errors.forEach(function(message) { %>
+            <div class="alert alert-danger small"><%= message %></div>
+          <% }) %>
+        <h2><%= review.title %></h2>
+        <p>Dined at <strong><%= review.restaurant %></strong> on <i><%= review.dateAdded.getDate() %>/<%= review.dateAdded.getMonth() + 1 %>/<%= review.dateAdded.getFullYear() %></i>
+        <div id="ratingarea" class="rating-component"><script>getRatingWidget(<%= review.rating %>,'#ratingarea');</script></div>
+        </p>
+        <div class="container-fluid">
+          <div class="row">
+            <% review.picArray.forEach((path) => { %>
+              <div class="col-md text-center">
+                <img class="restaurant-image" src="/<%= path.path %>" alt="<%= review.restaurant %> meal">
+              </div>
+            <% }) %>
+          </div>
+        </div>
+        <%- filterUserHTML(review.review) %>
+      </section>
+      
+    <!-- </div> -->
+</main>
+<footer>
+    <div class="row">
+        <div class="col-md-12 flex-d justify-content-center">
+            <p>By Lee Allen</p>
+        </div>
+    </div>
+</footer>
+</body>
+
+</html>

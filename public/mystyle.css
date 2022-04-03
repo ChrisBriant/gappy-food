@@ -11,7 +11,7 @@
   
   html,
   body {
-    background-color: rgb(255, 247, 236);
+    background-color: rgb(243, 250, 240);
     color:#262626;
     font-family: 'Lato','Arial',sans-serif;
     font-size: 18px;
@@ -37,7 +37,7 @@
   }
 
   section {
-    background-color: rgb(248, 244, 239);
+    background-color: rgb(255, 255, 255);
     padding: 1rem;
   }
 
@@ -67,11 +67,11 @@ h2 {
 h2::after {
   display: block;
   height: 2px;
-  background-color: #e67e22;
+  background-color: #805a30;
   content: " ";
   width: 100px;
   margin: 0 auto;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 h3 {
@@ -94,6 +94,15 @@ h3 {
 
 .logo {
   text-align: center;
+}
+
+
+/************************ FOOTER ****************************/
+footer {
+  background-color: rgb(15, 66, 49);
+  color: #fff;
+  text-align: center;
+  padding-top: 5px;
 }
 
 

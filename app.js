@@ -30,6 +30,12 @@ app.set('view engine', 'ejs');
 
 app.use(csrf());
 app.use(function(req,res,next) {
+    if(req.url.includes('/review')) {
+        res.locals.page = 'review';
+    }  else {
+        res.locals.page = 'other';
+    }
+
     //make our markdown function available from ejs templates
     res.locals.filterUserHTML = function(content) {
         return sanitizeHTML(markdown.parse(content),{
